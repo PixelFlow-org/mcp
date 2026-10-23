@@ -1,0 +1,7 @@
+{
+  "name": "pixelflow",
+  "description": "Server-side ad platform tracking. Set up tracking and ask about events.",
+  "version": "1.0.1",
+  "author": { "name": "PixelFlow" },
+  "license": "MIT"
+}
