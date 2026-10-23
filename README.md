@@ -1,4 +1,9 @@
-PixelFlow's MCP server sets up a Site and answers questions about events, attribution, and journeys. The customer signs in with their PixelFlow account.
+PixelFlow is server-side conversion tracking for Meta and TikTok. No tag manager, and no developer needed.
+
+The MCP server lets your AI agent do two things from the chat:
+
+1. Set up conversion tracking. The agent walks you through the install, connects Meta or TikTok, and creates the triggers for the actions you want to track, such as a form submission, a booked call, or a purchase. You approve the changes.
+2. Answer questions about your tracking and your data. PixelFlow returns the events themselves, so the agent can answer what you ask and build the report in the chat. What was attributed revenue last week? Which campaigns drove purchases? Why is Meta showing more leads than PixelFlow?
 
 The server URL is https://api.pixelflow.so/mcp.
 
