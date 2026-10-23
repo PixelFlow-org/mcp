@@ -1,0 +1,5 @@
+{
+  "name": "PixelFlow",
+  "url": "https://api.pixelflow.so/mcp",
+  "transport": "streamable-http"
+}

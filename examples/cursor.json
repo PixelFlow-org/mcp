@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "pixelflow": {
+      "url": "https://api.pixelflow.so/mcp"
+    }
+  }
+}

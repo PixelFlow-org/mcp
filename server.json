@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "so.pixelflow/pixelflow",
+  "title": "PixelFlow",
+  "description": "Server-side ad platform tracking. Set up tracking and ask about events.",
+  "version": "1.0.1",
+  "websiteUrl": "https://pixelflow.so/features/mcp?source=mcp_registry",
+  "repository": {
+    "url": "https://github.com/PixelFlow-org/mcp",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.pixelflow.so/mcp"
+    }
+  ]
+}
