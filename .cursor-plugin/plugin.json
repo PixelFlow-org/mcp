@@ -1,7 +1,11 @@
 {
   "name": "pixelflow",
-  "description": "Server-side ad platform tracking. Set up tracking and ask about events.",
+  "description": "Server-side conversion tracking for Meta, TikTok, etc. Set up tracking and ask about events.",
   "version": "1.0.1",
   "author": { "name": "PixelFlow" },
-  "license": "MIT"
+  "homepage": "https://pixelflow.so/features/mcp?utm_source=cursor_marketplace",
+  "repository": "https://github.com/PixelFlow-org/mcp",
+  "license": "MIT",
+  "logo": "assets/logo.png",
+  "keywords": ["server-side-tracking", "conversion-tracking", "meta", "tiktok"]
 }
