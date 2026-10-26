@@ -1,0 +1,44 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "pixelflow",
+  "version": "1.0.1",
+  "description": "Server-side conversion tracking for Meta, TikTok, etc. Set up tracking and ask about events.",
+  "author": {
+    "name": "PixelFlow",
+    "email": "hello@pixelflow.so",
+    "url": "https://pixelflow.so"
+  },
+  "homepage": "https://pixelflow.so/features/mcp?utm_source=chatgpt_directory",
+  "repository": "https://github.com/PixelFlow-org/mcp",
+  "license": "MIT",
+  "keywords": ["server-side-tracking", "conversion-tracking", "meta", "tiktok"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "PixelFlow",
+        "shortDescription": "Set up tracking, read events",
+        "longDescription": "PixelFlow is server-side conversion tracking for Meta, TikTok, etc. No tag manager, and no developer needed.\n\nThe MCP server lets your AI agent do two things from the chat:\n\n1. Set up conversion tracking. The agent walks you through the install, connects Meta or TikTok, and creates the triggers for the actions you want to track, such as a form submission, a booked call, or a purchase. You approve the changes.\n2. Answer questions about your tracking and your data. PixelFlow returns the events themselves, so the agent can answer what you ask and build the report in the chat. What was attributed revenue last week? Which campaigns drove purchases? Why is Meta showing more leads than PixelFlow?\n\nThe server URL is https://api.pixelflow.so/mcp.\n\nThe client opens the PixelFlow login and the customer clicks Allow. No token is pasted.",
+        "developerName": "PixelFlow",
+        "category": "Data & Analytics",
+        "websiteURL": "https://pixelflow.so?utm_source=chatgpt_directory",
+        "supportURL": "https://pixelflow.so/features/mcp?utm_source=chatgpt_directory",
+        "privacyPolicyURL": "https://pixelflow.so/privacy",
+        "termsOfServiceURL": "https://pixelflow.so/terms",
+        "defaultPrompt": [
+          "Install PixelFlow.",
+          "What conversions should I add?",
+          "What was attributed revenue last week?"
+        ],
+        "logo": "./assets/logo.png",
+        "composerIcon": "./assets/logo.png"
+      },
+      "review": {
+        "commerce": false,
+        "commerce_description": "PixelFlow does not take payment inside the plugin."
+      },
+      "publication": {
+        "release_notes": "First listing. Remote MCP at https://api.pixelflow.so/mcp. OAuth with the customer's PixelFlow account."
+      }
+    }
+  }
+}
