@@ -3,8 +3,17 @@
   "name": "so.pixelflow/pixelflow",
   "title": "PixelFlow",
   "description": "Server-side conversion tracking for Meta, TikTok, etc. Set up tracking and ask about events.",
-  "version": "1.0.1",
-  "websiteUrl": "https://pixelflow.so/features/mcp?source=mcp_registry",
+  "version": "2.0.0",
+  "websiteUrl": "https://pixelflow.so/features/mcp?utm_source=mcp_registry",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/PixelFlow-org/mcp/main/assets/logo.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "512x512"
+      ]
+    }
+  ],
   "repository": {
     "url": "https://github.com/PixelFlow-org/mcp",
     "source": "github"
