@@ -1,3 +1,5 @@
+# PixelFlow MCP Server
+
 PixelFlow is server-side conversion tracking for Meta and TikTok. No tag manager, and no developer needed.
 
 The MCP server lets your AI agent do two things from the chat:
@@ -22,34 +24,36 @@ The client opens the PixelFlow login and the customer clicks Allow. No token is 
 | Never touches | Deleting a Site or a Pixel. Those tools do not exist. |
 
 <!-- tools:start -->
-`list_sites`: List sites. Reads.
-`get_site_status`: Get site status. Reads.
-`get_install_instructions`: Get install instructions. Reads.
-`verify_tracking`: Verify tracking. Loads the customer's site.
-`get_connect_link`: Get connect link. Edits.
-`update_pixel`: Update pixel. Edits.
-`update_integration`: Update integration. Edits.
-`disconnect_integration`: Disconnect integration. Deletes.
-`create_site`: Create site. Edits.
-`update_site`: Update site. Edits.
-`get_overview`: Get overview. Reads.
-`get_attribution`: Get attribution. Reads.
-`get_journeys`: Get journeys. Reads.
-`list_events`: List events. Reads.
-`get_event_payloads`: Get event payloads. Reads.
-`get_blocked_events`: Get blocked events. Reads.
-`list_triggers`: List triggers. Reads.
-`suggest_triggers`: Suggest triggers. Reads.
-`check_selector`: Check selector. Loads the customer's site.
-`list_recent_changes`: List recent changes. Reads.
-`create_trigger`: Create trigger. Edits.
-`update_trigger`: Update trigger. Edits.
-`delete_trigger`: Delete trigger. Deletes.
-`upsert_blocking_rule`: Save blocking rule. Edits.
-`delete_blocking_rule`: Delete blocking rule. Deletes.
-`close_get_started`: Close get started. Edits.
-`ensure_webflow_ecommerce_triggers`: Ensure Webflow ecommerce triggers. Edits.
+| Tool | What it does | Access |
+| --- | --- | --- |
+| `list_sites` | List the websites the signed-in user can access in PixelFlow: each site's site_id, domain, platform, currency, whether the user can edit it, and the workspace it belongs to with the user's role there. | Reads |
+| `list_supported_values` | List the names PixelFlow supports and other tools accept: the platforms a site can run on, the ad platforms events can be sent to, the integrations that report conversions, the supported events, and the traffic sources events are attributed to. | Reads |
+| `get_site_status` | Get the setup and health state of one site: its settings (domain, platform, currency, ecommerce flags), whether the PixelFlow script or plugin is installed, connected pixels and integrations, blocking rules, consent mode, the last event received of each type, which Get Started checklist items are done, and the plan, limits, and usage of its workspace. | Reads |
+| `get_install_instructions` | Get step-by-step instructions the user follows on their website or in their ad platform's ads manager, for one task: installing PixelFlow, adding UTM parameters to ad links, removing an ad platform's own pixel code (such as the Facebook pixel) that was added before PixelFlow and would count events twice, or removing PixelFlow. | Reads |
+| `verify_tracking` | Check that tracking works on one site by loading one of its pages in a headless browser and reading the events received since checked_from. | Loads the customer's site |
+| `get_connect_link` | Create a one-time link to the PixelFlow dashboard page for a step that needs a browser sign-in or a secret. | Edits |
+| `update_pixel` | Change the label or the test event code of a connected ad platform pixel. | Edits |
+| `update_integration` | Change the settings of an integration connected to a site, such as Stripe or Calendly. | Edits |
+| `disconnect_integration` | Disconnect an integration such as Stripe or Calendly from a site and return which one was removed. | Deletes |
+| `create_site` | Add a new website to a PixelFlow workspace and return the saved site with its site_id. | Edits |
+| `update_site` | Change settings on a site (domain, platform, currency, ecommerce flags, or Get Started checklist items) and return the saved site. | Edits |
+| `get_overview` | Get tracking totals for one site over a date range: the count of each event, such as Purchase or Lead, revenue, events delivered and failed per pixel, events blocked by consent or bot detection, event counts per day or week, and, for the newest 500 conversions in the range, how many carried a hashed email or phone. | Reads |
+| `get_attribution` | Get revenue and conversions for one site over a date range, broken down by traffic source, campaign, ad set, or ad, using PixelFlow's website attribution (the UTM tags and referrer of the converting visit). | Reads |
+| `get_journeys` | Get visitor journeys on one site, one row per visitor with an event in the date range. | Reads |
+| `list_events` | List the tracked events on one site as rows, up to 100 per call. | Reads |
+| `get_event_payloads` | Get the payload (request body) PixelFlow sent to each ad platform for up to 25 events by id. | Reads |
+| `get_blocked_events` | List the events PixelFlow did not send to ad platforms on one site because of consent or bot detection, up to 100 per call. | Reads |
+| `list_triggers` | List every conversion trigger on one site, including integrations such as Stripe. | Reads |
+| `suggest_triggers` | Suggest the conversion triggers a site still needs: which events are tracked today, and one proposal per gap. | Reads |
+| `create_trigger` | Create a trigger that sends an event to the site's ad platforms when a visitor submits a form, clicks an element, or loads a page, and return the saved trigger with its trigger_id. | Edits |
+| `update_trigger` | Change an existing trigger of type url, click, or submit and return the saved trigger. | Edits |
+| `delete_trigger` | Delete a trigger of type url, click, or submit and return the id and type of the removed trigger. | Deletes |
+| `save_blocking_rule` | Save the blocking rule for one event on a site, such as Purchase, or for all events (AllEvents). | Edits |
+| `delete_blocking_rule` | Delete the blocking rule for one event on a site, such as Purchase, or the AllEvents rule. | Deletes |
+| `close_get_started` | Check the site's Get Started checklist and mark as done the items PixelFlow can confirm from its data. | Edits |
 <!-- tools:end -->
+
+The full description, hints, arguments, and result fields of every tool are in [TOOLS.md](TOOLS.md), generated from the server.
 
 ## Claude
 
@@ -201,10 +205,10 @@ PixelFlow never asks you to paste a token, a key or a password: you sign in with
 
 ## Prompts
 
-`setup_tracking`: Create or update a Site, return the snippet or the plugin steps, connect an Ad Platform, verify, and set up the conversions to track, including the duplicate-tracking message.
+`setup_tracking`: Create or update a site, return the snippet or the plugin steps, connect an ad platform, verify, and set up the conversions to track, including a duplicate pixel.
 
-`audit_tracking`: Health check of a running Site. Findings are ordered by revenue impact, and each one includes its fix.
+`audit_tracking`: Health check of a running site. Findings are ordered by revenue impact, and each one includes its fix.
 
-`weekly_report`: Last 7 days against the 7 days before: Overview numbers, attributed revenue, blocked events, and whether tracking is still healthy.
+`weekly_report`: Last 7 days against the 7 days before: overview numbers, attributed revenue, blocked events, and whether tracking is still healthy.
 
 The pasteable setup prompt is on https://pixelflow.so/features/mcp.
