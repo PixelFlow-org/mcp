@@ -1,7 +1,7 @@
 {
   "name": "pixelflow",
   "description": "Server-side conversion tracking for Meta, TikTok, etc. Set up tracking and ask about events.",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": { "name": "PixelFlow", "url": "https://pixelflow.so" },
   "homepage": "https://pixelflow.so/features/mcp?source=claude_directory",
   "documentationUrl": "https://github.com/PixelFlow-org/mcp",

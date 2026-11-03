@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.1
+
+The live page is a selector source. An agent with a browser tool it controls reads a form or button from the rendered page, runs the selector there, and creates the trigger itself; the Visual Tagger is the fallback when no code, builder data, or live page yields the selector. A page fetched as text, view-source, or a screenshot is still not a source.
+
+Changed:
+
+- `create_trigger` and `update_trigger`: the description names the three sources. The `type` text says click also covers a form submitted by JavaScript without a native submit event, such as Ninja Forms, Elementor, or Gravity Forms with AJAX.
+- `update_trigger`: `type` may change between submit and click in place; a url trigger keeps its type. A switch that keeps the stored selector is refused when that selector does not fit the new type, with the same sentence `create_trigger` uses.
+- `suggest_triggers`: an observation with `source` `page` becomes a create_trigger line, as `code` does; only `user` becomes a Visual Tagger line. The tagger rule in `rules_to_follow` tells an agent with a browser tool to read the element and call `create_trigger` before sending the link.
+- `next_step` on a saved trigger and audit item 5: a submit trigger that sends no event is switched to click with `update_trigger` before the Visual Tagger is offered; the user, not the agent, waits out the cache; the saved trigger is deleted once the tagger has saved its own.
+- `pixelflow://trigger-playbook`: the elements section points to `create_trigger` for the source rules.
+
 ## 2.0.0
 
 Tool definitions were rewritten. `tools/list` has 25 tools. The version is 2.0.0 because the contract changed: the `site` argument is refused, three tools are gone, and one is renamed. A host that cached the 1.0.x tool list gets a sentence naming the replacement when it calls a removed tool, and the hint to call `tools/list` again. Claude, Claude Code, Cursor, and Lovable fetch the list on each new chat; in ChatGPT, refresh the connector in its settings.

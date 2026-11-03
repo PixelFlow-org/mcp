@@ -837,7 +837,7 @@ List every conversion trigger on one site, including integrations such as Stripe
 Suggest triggers. Reads. readOnlyHint true, destructiveHint false, idempotentHint true, openWorldHint false
 
 Suggest the conversion triggers a site still needs: which events are tracked today, and one proposal per gap. It uses what PixelFlow knows about the site and the observations passed in; it does not load the website or read code.
-A url proposal carries arguments ready for create_trigger. An integration proposal carries connect arguments for get_connect_link. A click or submit proposal carries no create_trigger arguments: the agent builds them from the site's code, or the proposal carries connect arguments for get_connect_link, so the user picks the element on the website with the Visual Tagger.
+A url proposal carries arguments ready for create_trigger. An integration proposal carries connect arguments for get_connect_link. A click or submit proposal carries no create_trigger arguments: the agent builds them from the site's code, a connected builder's element data, or the live page in its own browser tool. When none of these yields the selector, call get_connect_link with the proposal's connect arguments, so the user picks the element on the website with the Visual Tagger.
 Refused until site setup has passed verify. Use it when setting up conversion tracking, or when the user asks what else they could track.
 
 ### Arguments
@@ -854,7 +854,7 @@ Refused until site setup has passed verify. Use it when setting up conversion tr
 | `observations[].form_fields` | array of string | no | Input names or labels on a form, such as email, phone. A hint for naming the event; they are not written to the trigger. |
 | `observations[].provider` | string | no | Third-party provider of an integration or an embedded form, such as calendly or typeform. |
 | `observations[].is_in_iframe` | boolean | no | Whether the element is inside an iframe. The script cannot see inside one, so such a form comes back as an add_code proposal. |
-| `observations[].source` | string, one of code, page, user | yes | Where it was seen: in the site's code or a builder's element data (code), on a rendered page (page), or told by the user (user). Required. A form or button from code is a proposal for create_trigger; from page or user it is a Visual Tagger line with that page_path. |
+| `observations[].source` | string, one of code, page, user | yes | Where it was seen: in the site's code or a builder's element data (code), on the live page in the agent's browser tool (page), or told by the user (user). Required. A form or button from code or page is a proposal for create_trigger; from user it is a Visual Tagger line with that page_path. |
 
 ### Result
 
@@ -882,7 +882,7 @@ Refused until site setup has passed verify. Use it when setting up conversion tr
 | `proposals[].arguments.url` | string |  |
 | `proposals[].arguments.url_params_mapping` | map of string, may be omitted |  |
 | `proposals[].connect` | object or null | Arguments for get_connect_link. Set when action is get_connect_link, null otherwise. |
-| `proposals[].connect.target` | string, one of integration, visual_tagger | integration: connect a third-party service. visual_tagger: the user picks the element on the website, because no code names it. |
+| `proposals[].connect.target` | string, one of integration, visual_tagger | integration: connect a third-party service. visual_tagger: the user picks the element on the website, because neither code nor a live page names it. |
 | `proposals[].connect.integration` | string or null | With target integration: the integration to connect, such as stripe. |
 | `proposals[].connect.page_path` | string or null | With target visual_tagger: the page where the user picks the element. null when no page is known; ask the user for it. |
 | `proposals[].message` | string or null | With action add_code: why no trigger can track the event and how to send it from the site's code instead, such as trackEvent from the Programmatic Tracking API for a form inside an iframe. |
@@ -921,8 +921,8 @@ Refused until site setup has passed verify. Use it when setting up conversion tr
 Create trigger. Edits. readOnlyHint false, destructiveHint false, idempotentHint true, openWorldHint false
 
 Create a trigger that sends an event to the site's ad platforms when a visitor submits a form, clicks an element, or loads a page, and return the saved trigger with its trigger_id.
-Build the selector, text_match, and data_extraction fields only from the site's code open in this chat, or from a site builder's element data when that builder is connected in this chat. Use what is rendered in the page: an element's id, a class, the control's visible label, or an input's `name` attribute. Without the code or the builder's element data, do not create a click or submit trigger: call get_connect_link with target visual_tagger and the page path, so the user picks the element and its fields. Call list_triggers first: a click or submit trigger on the same element may already exist, such as one the Visual Tagger saved.
-Nothing is added to the website code. Repeating an idempotency_key returns the same trigger. Refused until site setup has passed verify. Use it after the user approves a trigger, such as one proposed by suggest_triggers.
+Build the selector, text_match, and data_extraction fields from one of these, never guess: the site's code open in this chat; a site builder's element data when that builder is connected in this chat; or the live page loaded in a browser tool the agent controls, where the agent runs the selector and confirms it matches only the elements the trigger should fire on. A page fetched as text, view-source, or a screenshot is not a source. Use what is rendered in the page: an element's id, a class, the control's visible label, or an input's `name` attribute. When none of these yields the selector, do not create a click or submit trigger: call get_connect_link with target visual_tagger and the page path, so the user picks the element and its fields. Call list_triggers first: a click or submit trigger on the same element may already exist, such as one the Visual Tagger saved.
+Nothing is added to the website code. Repeating an idempotency_key returns the same trigger. Refused until site setup has passed verify. Use it after the user approves a trigger, such as one proposed by suggest_triggers. Ask for approval in the user's words: the event, when it fires, and the fields it sends by their labels, if any.
 
 ### Arguments
 
@@ -930,7 +930,7 @@ Nothing is added to the website code. Repeating an idempotency_key returns the s
 | --- | --- | --- | --- |
 | `site_id` | integer | yes | Site to act on, as returned by list_sites. |
 | `idempotency_key` | string | yes | Unique string per intended change, such as a UUID. Repeating a key returns the first result instead of writing again. |
-| `type` | string, one of url, click, submit | yes | What the visitor does to trigger an event. submit: submits a `<form>` element. click: clicks a button, link, or other element, including the button of a form built without a `<form>` element. url: loads a page (prefix match on host and path; the query is ignored), such as a product page for ViewContent. |
+| `type` | string, one of url, click, submit | yes | What the visitor does to trigger an event. submit: submits a `<form>` element that dispatches a native submit event. click: clicks a button, link, or other element, including one that submits a form with JavaScript without a native submit event, such as a form built without a `<form>` element, Ninja Forms, Elementor, or Gravity Forms with AJAX. url: loads a page (prefix match on host and path; the query is ignored), such as a product page for ViewContent. |
 | `event` | string | yes | Event to send, such as Lead or Purchase. Names are in list_supported_values's `events`. |
 | `url` | string | no | Page on this site that fires the event when it loads. Required for url type. Refused for click and submit. Query values are ignored. |
 | `selector` | string | no | Required for click and submit type. For click: the element the visitor clicks, such as a button, a link, an image, or any other clickable element. For submit: the form's submit control, a `button` or an `input` of type submit, never the form or a wrapper around it; a submit selector that ends in `form`, `div`, `span`, `section`, or another container tag is refused. Prefer the element's `#id`, then a control tag (`button`, `input`, `a`) with text_match on its label, then a stable `[name=...]`, `[data-...=...]`, or `a[href=...]`, then a class chain read from the markup. The trigger fires on every element the selector matches, on every page, so a class has to be unique across the site, not only on this page. A bare tag without text_match is refused. At most 250 characters and 10 `>` segments. |
@@ -1064,15 +1064,15 @@ Nothing is added to the website code. Repeating an idempotency_key returns the s
 | `trigger.value` | number or null | Fixed value. |
 | `trigger.data_extraction` | object or null | Where customer data, value, and product data are read on the page; same shape as the parameter. |
 | `trigger.created_at` | string (date-time) | When the trigger was created. |
-| `next_step` | string | For a saved trigger: what to do next. The previous configuration stays cached for about a minute; then test once in a fresh private window and confirm with list_events. For click and submit: adding customer fields when missing, and, when the test sends no event, opening the Visual Tagger for that page. |
+| `next_step` | string | For a saved trigger: what to do next. The previous configuration stays cached for about a minute; then the user tests once in a fresh private window and the event is confirmed with list_events. For click and submit: adding customer fields when missing, switching a silent submit trigger to click, and, when the test still sends no event, opening the Visual Tagger for that page. |
 
 ## `update_trigger`
 
 Update trigger. Edits. readOnlyHint false, destructiveHint true, idempotentHint true, openWorldHint false
 
-Change an existing trigger of type url, click, or submit and return the saved trigger. type and event are always required, and type cannot change. Other omitted fields stay unchanged; provided fields overwrite the stored value.
-Build a new selector, text_match, or data_extraction only from the site's code open in this chat, or from a site builder's element data when that builder is connected in this chat. Use what is rendered in the page: an element's id, a class, the control's visible label, or an input's `name` attribute. Without the code or the builder's element data, do not change a click or submit selector: call get_connect_link with target visual_tagger and the page path, so the user picks the element and its fields.
-Repeating an idempotency_key applies the change once. Use it when the user wants to change a trigger's page, element, event, value, or data extraction.
+Change an existing trigger of type url, click, or submit and return the saved trigger. type and event are always required. type can change only between submit and click; a url trigger keeps its type. Other omitted fields stay unchanged; provided fields overwrite the stored value.
+Build a new selector, text_match, or data_extraction from one of these, never guess: the site's code open in this chat; a site builder's element data when that builder is connected in this chat; or the live page loaded in a browser tool the agent controls, where the agent runs the selector and confirms it matches only the elements the trigger should fire on. A page fetched as text, view-source, or a screenshot is not a source. Use what is rendered in the page: an element's id, a class, the control's visible label, or an input's `name` attribute. When none of these yields the selector, do not change a click or submit selector: call get_connect_link with target visual_tagger and the page path, so the user picks the element and its fields.
+Repeating an idempotency_key applies the change once. Use it when the user wants to change a trigger's page, element, event, value, or data extraction. Ask for approval in the user's words: the event, when it fires, and the fields it sends by their labels, if any.
 
 ### Arguments
 
@@ -1081,7 +1081,7 @@ Repeating an idempotency_key applies the change once. Use it when the user wants
 | `site_id` | integer | yes | Site to act on, as returned by list_sites. |
 | `idempotency_key` | string | yes | Unique string per intended change, such as a UUID. Repeating a key returns the first result instead of writing again. |
 | `trigger_id` | integer | yes | Trigger id as returned by list_triggers or create_trigger. |
-| `type` | string, one of url, click, submit | yes | Type of the stored trigger, as returned by list_triggers. It cannot change; a different type is refused. |
+| `type` | string, one of url, click, submit | yes | Type of the stored trigger, as returned by list_triggers, or click for a stored submit trigger and the reverse. A kept selector must fit the new type: a submit selector names the submit control, not the form. A url trigger keeps its type; url to click or submit, and the reverse, is refused. |
 | `event` | string | yes | Event to send, such as Lead or Purchase. Names are in list_supported_values's `events`. |
 | `url` | string | no | Page on this site that fires the event when it loads. url type only; refused for click and submit. Query values are ignored. |
 | `selector` | string | no | Click and submit only. For click: the element the visitor clicks, such as a button, a link, an image, or any other clickable element. For submit: the form's submit control, a `button` or an `input` of type submit, never the form or a wrapper around it; a submit selector that ends in `form`, `div`, `span`, `section`, or another container tag is refused. Prefer the element's `#id`, then a control tag (`button`, `input`, `a`) with text_match on its label, then a stable `[name=...]`, `[data-...=...]`, or `a[href=...]`, then a class chain read from the markup. The trigger fires on every element the selector matches, on every page, so a class has to be unique across the site, not only on this page. A bare tag without text_match is refused. At most 250 characters and 10 `>` segments. |
@@ -1215,7 +1215,7 @@ Repeating an idempotency_key applies the change once. Use it when the user wants
 | `trigger.value` | number or null | Fixed value. |
 | `trigger.data_extraction` | object or null | Where customer data, value, and product data are read on the page; same shape as the parameter. |
 | `trigger.created_at` | string (date-time) | When the trigger was created, not when it was changed. |
-| `next_step` | string | For a saved trigger: what to do next. The previous configuration stays cached for about a minute; then test once in a fresh private window and confirm with list_events. For click and submit: adding customer fields when missing, and, when the test sends no event, opening the Visual Tagger for that page. |
+| `next_step` | string | For a saved trigger: what to do next. The previous configuration stays cached for about a minute; then the user tests once in a fresh private window and the event is confirmed with list_events. For click and submit: adding customer fields when missing, switching a silent submit trigger to click, and, when the test still sends no event, opening the Visual Tagger for that page. |
 
 ## `delete_trigger`
 
