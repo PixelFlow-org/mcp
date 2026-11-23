@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.1.0
+
+Every event and every pixel send has one of four statuses: delivered, pending, failed, or skipped. Each pixel's status comes with a reason, so an agent can tell an event still waiting to be sent from one an ad platform rejected, and from one PixelFlow chose not to send, such as a purchase with no click from that platform's ads.
+
+Added:
+
+- `list_events`: each row has `status` (delivered, pending, failed, skipped), rolled up from its pixels: failed when any pixel failed, pending when none failed and any is pending, delivered when every pixel the event was sent to confirmed it, skipped when every pixel skipped it.
+- `list_events`: a `status` filter with the same four values. It wins over `is_sent_successfully` when both are passed.
+- `list_events` and `get_event_payloads`: `pixels[].reason` beside each pixel's state. A send waiting to go out reads "Waiting to be sent"; a send the ad platform accepted and has not confirmed says so; a skipped send carries why it was skipped. Null when delivered.
+
+Changed:
+
+- `list_events` and `get_event_payloads`: `pixels[].state` `sent` is renamed `delivered`, and `skipped` is added. `get_event_payloads` lists skipped pixels too, with a null payload.
+- `list_events`: `is_sent_successfully` false returns failed events only; before, it also returned events still being sent. True is unchanged, and the field on each row is true exactly when `status` is delivered. `pixel_ids` no longer matches a pixel that skipped the event.
+- `get_overview`: `delivered`, `failed`, and the per-pixel `sent` and `failed` counts leave pending and skipped sends out.
+
 ## 2.0.1
 
 The live page is a selector source. An agent with a browser tool it controls reads a form or button from the rendered page, runs the selector there, and creates the trigger itself; the Visual Tagger is the fallback when no code, builder data, or live page yields the selector. A page fetched as text, view-source, or a screenshot is still not a source.

@@ -511,14 +511,14 @@ Get tracking totals for one site over a date range: the count of each event, suc
 | `revenue_by_currency[].events` | integer | Valued events summed. |
 | `delivered` | object | Events delivered to the ad platforms. |
 | `delivered.count` | integer | Events delivered. |
-| `failed` | object | Events that failed with an error. Events still sending are in neither count. |
+| `failed` | object | Events that failed. Pending and skipped events are in neither count. |
 | `failed.count` | integer | Events failed. |
-| `pixels` | array of object | Per pixel: `pixel_id` (integer), `name` (string), `ad_platform` (string or null), `sent` (integer), `failed` (integer, not delivered). |
+| `pixels` | array of object | Per pixel: `pixel_id` (integer), `name` (string), `ad_platform` (string or null), `sent` (integer, delivered), `failed` (integer). Pending and skipped sends are in neither count. |
 | `pixels[].pixel_id` | integer | Pixel id. |
 | `pixels[].name` | string | Pixel name. |
 | `pixels[].ad_platform` | string or null | Ad platform name. |
-| `pixels[].sent` | integer | Events sent. |
-| `pixels[].failed` | integer | Events not delivered. |
+| `pixels[].sent` | integer | Sends delivered. |
+| `pixels[].failed` | integer | Sends failed. |
 | `blocked` | object | Events not sent because of consent or bots: `total`, `bots_blocked`, `consent_events_blocked` (integers), `reasons` (object, reason to count: denied, no_decision, gpc, bot), and `event_counts` (object, event to count, such as { "Purchase": 9 }). For the individual blocked events, see get_blocked_events. |
 | `blocked.total` | integer | All blocked events. |
 | `blocked.bots_blocked` | integer | Blocked as bots. |
@@ -653,7 +653,7 @@ Get visitor journeys on one site, one row per visitor with an event in the date 
 
 List events. Reads. readOnlyHint true, destructiveHint false, idempotentHint true, openWorldHint false
 
-List the tracked events on one site as rows, up to 100 per call. Each row has the time, event, page URL, traffic source, value, visitor and session ids, UTM tags with first and last touch, consent, and send status per pixel with any ad platform error. For an event's full payload, pass its id to get_event_payloads. Use it to answer questions about tracked events, such as what one visitor did, which conversions failed to send, or which pages purchases came from.
+List the tracked events on one site as rows, up to 100 per call. Each row has the time, event, page URL, traffic source, value, visitor and session ids, UTM tags with first and last touch, consent, the event status, and the status per pixel with its reason. For an event's full payload, pass its id to get_event_payloads. Use it to answer questions about tracked events, such as what one visitor did, which conversions failed to send, or which pages purchases came from.
 
 ### Arguments
 
@@ -668,8 +668,9 @@ List the tracked events on one site as rows, up to 100 per call. Each row has th
 | `utm_campaign` | array of string, up to 50 items | no | Match the visitor's UTM campaign seen in the lookback_days before the event (returned in the result). (not set) matches a blank value. |
 | `utm_term` | array of string, up to 50 items | no | Same, for UTM term (usually the ad set). |
 | `utm_content` | array of string, up to 50 items | no | Same, for UTM content (usually the ad). |
-| `pixel_ids` | array of integer, up to 50 items | no | Only events sent to these pixels, ids from get_site_status. Rows still list every pixel. |
-| `is_sent_successfully` | boolean | no | Whether to return only delivered events (true) or only failed and still-sending events (false); rows with an error are real failures. Default all. |
+| `pixel_ids` | array of integer, up to 50 items | no | Only events sent to these pixels, ids from get_site_status. A pixel that skipped the event does not count. Rows still list every pixel. |
+| `status` | string, one of pending, delivered, failed, skipped | no | Only events with this status: delivered, pending, failed, or skipped. Default all. |
+| `is_sent_successfully` | boolean | no | Older form of status: true returns only delivered events, false returns only failed events. status wins when both are passed. Default all. |
 | `visitor_id` | string | no | One visitor's events, visitor_id from an earlier row. |
 | `sort` | string, one of newest, oldest | no | Default newest. |
 | `limit` | integer, 1 to 100 | no | Page size. Default 25. |
@@ -697,7 +698,8 @@ List the tracked events on one site as rows, up to 100 per call. Each row has th
 | `events[].event_id` | string or null | Deduplication id shared with the browser pixel. |
 | `events[].visitor_id` | string or null | Visitor id. |
 | `events[].session_id` | string or null | Session id. |
-| `events[].is_sent_successfully` | boolean | Whether the event was delivered to the ad platforms. |
+| `events[].status` | string, one of pending, delivered, failed, skipped | Event status, rolled up from the pixels' states. failed: any pixel failed. pending: none failed and any is pending. delivered: every pixel the event was sent to confirmed it. skipped: every pixel skipped it. |
+| `events[].is_sent_successfully` | boolean | Whether the event was delivered to the ad platforms. true exactly when status is delivered. |
 | `events[].error` | string or null | Ad platform error. Set only on a real failure. |
 | `events[].utm_source` | string or null | UTM tag of the visitor in the lookback_days before the event. |
 | `events[].utm_medium` | string or null | UTM tag of the visitor in the lookback_days before the event. |
@@ -724,11 +726,12 @@ List the tracked events on one site as rows, up to 100 per call. Each row has th
 | `events[].consent.source` | string or null | Consent tool. |
 | `events[].consent.decision_at` | string (date-time) or null | When the visitor decided. |
 | `events[].consent.regime` | string or null, one of opt_in, opt_out | Consent rule for the visitor's region. opt_in: consent is needed before tracking. opt_out: tracking is allowed until the visitor refuses. null when not recorded. |
-| `events[].pixels` | array of object | Per pixel: `pixel_id`, `name`, `ad_platform`, `state` (enum: sent, failed, pending). |
+| `events[].pixels` | array of object | Per pixel: `pixel_id`, `name`, `ad_platform`, `state` (enum: delivered, pending, failed, skipped), `reason` (string or null). |
 | `events[].pixels[].pixel_id` | integer | Pixel id. |
 | `events[].pixels[].name` | string | Pixel name. |
 | `events[].pixels[].ad_platform` | string or null | Ad platform name. |
-| `events[].pixels[].state` | string, one of sent, failed, pending | Send status, as in list_events. |
+| `events[].pixels[].state` | string, one of pending, delivered, failed, skipped | Send status. delivered: the ad platform confirmed it. pending: waiting to be sent, or sent and not confirmed yet. failed: the ad platform rejected it or it could not be sent. skipped: not sent on purpose, because the ad platform cannot use it. |
+| `events[].pixels[].reason` | string or null | Why the send is failed, skipped or pending. null when delivered. |
 
 ## `get_event_payloads`
 
@@ -754,13 +757,14 @@ Get the payload (request body) PixelFlow sent to each ad platform for up to 25 e
 | `events[].id` | integer | Row id from list_events. |
 | `events[].time` | string (date-time) | Arrival time. |
 | `events[].event` | string | The event recorded, such as Purchase. |
-| `events[].pixels` | array of object | One per pixel the event was sent to, including pixels deleted since. Empty when the event was not sent to any pixel. |
+| `events[].pixels` | array of object | One per pixel the event was sent to or skipped for, including pixels deleted since. Empty when the event has no pixel. |
 | `events[].pixels[].pixel_id` | integer | The pixel, as in list_events. |
 | `events[].pixels[].name` | string | The pixel, as in list_events. |
 | `events[].pixels[].ad_platform` | string or null | The pixel, as in list_events. |
-| `events[].pixels[].state` | string, one of sent, failed, pending | Send status, as in list_events. |
+| `events[].pixels[].state` | string, one of pending, delivered, failed, skipped | Send status. delivered: the ad platform confirmed it. pending: waiting to be sent, or sent and not confirmed yet. failed: the ad platform rejected it or it could not be sent. skipped: not sent on purpose, because the ad platform cannot use it. |
+| `events[].pixels[].reason` | string or null | Why the send is failed, skipped or pending. null when delivered. |
 | `events[].pixels[].error` | string or null | Error stored for this send. Set only on a real failure. |
-| `events[].pixels[].payload` | object or null | Payload (request body) sent to the ad platform, as stored. IP masked unless include_ip. null when no payload is stored, such as a send that failed before dispatch or an event older than payload retention. |
+| `events[].pixels[].payload` | object or null | Payload (request body) sent to the ad platform, as stored. IP masked unless include_ip. null when no payload is stored, such as a skipped send, a send that failed before dispatch or an event older than payload retention. |
 
 ## `get_blocked_events`
 
