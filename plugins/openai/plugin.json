@@ -62,7 +62,7 @@
               "description": "Read recent events and their payloads",
               "prompt": "Show recent events and their payloads on my website tracked by PixelFlow.",
               "tools_triggered": "list_sites, list_events, get_event_payloads",
-              "expected_behavior": "Return recent PageView and SubmitApplication events, then the SubmitApplication payloads. Email, first name, and last name stay hashed, and the reply contains no plaintext email. Those events were sent to the Facebook pixel. Create nothing."
+              "expected_behavior": "Return recent PageView and SubmitApplication events, then the SubmitApplication payloads. A payload contains hashed customer fields (email, first name, and last name), a hashed IP address, the user agent, and click ids, with no plain-text email. Those events were sent to the Facebook pixel. Create nothing."
             },
             {
               "description": "Rename the connected pixel",
@@ -90,10 +90,10 @@
           ]
         },
         "commerce": false,
-        "commerce_description": "PixelFlow does not take payment inside the plugin."
+        "commerce_description": "PixelFlow is a paid subscription that users buy and manage on pixelflow.so, outside ChatGPT. The plugin works with the user's existing account. Its tools take no payment and return no prices, plan offers, upgrade prompts, or links to billing or checkout."
       },
       "publication": {
-        "release_notes": "First listing. Remote MCP at https://api.pixelflow.so/mcp. OAuth with the customer's PixelFlow account."
+        "release_notes": "Commerce: removed the billing link, upgrade wording and plan, billing state and trial fields from all tools. Privacy: the privacy policy now lists every category of data the tools return, with purpose, recipient, retention and controls (section 9). Removed the include_ip option, whose description did not match what the tool returned. Added three skills (setup, audit and weekly report) that guide the assistant through the plugin's existing tools."
       }
     }
   }

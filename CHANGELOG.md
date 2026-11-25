@@ -4,14 +4,26 @@
 
 Every event and every pixel send has one of four statuses: delivered, pending, failed, or skipped. Each pixel's status comes with a reason, so an agent can tell an event still waiting to be sent from one an ad platform rejected, and from one PixelFlow chose not to send, such as a purchase with no click from that platform's ads.
 
+The tools also stop carrying anything about buying a subscription, and each MCP plugin moves into its own folder. The version is 2.1.0 and not a major one because no tool is removed or renamed. An agent that cached the 2.0.1 tool list keeps working: a call that still passes `include_ip` is accepted and the argument is ignored, and a call that still asks for the billing link gets one sentence naming the remaining targets.
+
 Added:
 
 - `list_events`: each row has `status` (delivered, pending, failed, skipped), rolled up from its pixels: failed when any pixel failed, pending when none failed and any is pending, delivered when every pixel the event was sent to confirmed it, skipped when every pixel skipped it.
 - `list_events`: a `status` filter with the same four values. It wins over `is_sent_successfully` when both are passed.
 - `list_events` and `get_event_payloads`: `pixels[].reason` beside each pixel's state. A send waiting to go out reads "Waiting to be sent"; a send the ad platform accepted and has not confirmed says so; a skipped send carries why it was skipped. Null when delivered.
+- The OpenAI package carries the three skills (setup, audit, and weekly report) the Claude and Cursor plugins already have.
+
+Removed:
+
+- `get_connect_link`: the `billing` target, in the argument and in the result. The targets are `ad_platform`, `integration`, and `visual_tagger`.
+- `get_event_payloads`: the `include_ip` argument. The IP address in a payload is stored as a hash, so the argument changed nothing.
 
 Changed:
 
+- `get_site_status`: `workspace.plan`, `workspace.plan_status`, and `workspace.trial_days_left` are replaced by `workspace.is_subscription_active`. False means PixelFlow is not accepting events from the workspace's sites. `limits` and `usage` keep their fields.
+- Refusals for the site limit, the ad platform limit, and a subscription that is not active say what the state is, what did not happen, and, for a limit, what frees a place. They carry no upgrade wording and no link. The reason codes are unchanged.
+- `pixelflow://glossary`: the journey window and Site visitor entries name no plan tiers. They point to the workspace's own numbers in `get_site_status`.
+- Repository: each MCP plugin has its own folder, `plugins/claude`, `plugins/openai`, and `plugins/cursor`, with copies of the skills, the logo, and the license written by `sync-plugins.sh`.
 - `list_events` and `get_event_payloads`: `pixels[].state` `sent` is renamed `delivered`, and `skipped` is added. `get_event_payloads` lists skipped pixels too, with a null payload.
 - `list_events`: `is_sent_successfully` false returns failed events only; before, it also returned events still being sent. True is unchanged, and the field on each row is true exactly when `status` is delivered. `pixel_ids` no longer matches a pixel that skipped the event.
 - `get_overview`: `delivered`, `failed`, and the per-pixel `sent` and `failed` counts leave pending and skipped sends out.
