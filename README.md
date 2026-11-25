@@ -20,7 +20,7 @@ The client opens the PixelFlow login and the customer clicks Allow. No token is 
 | Never touches | The customer's ad account. The server does not change campaigns, budgets, or ads. |
 | Never touches | The customer's website. The server does not edit it. A coding agent that already has the repo may place the snippet the install tool returned. |
 | Never touches | Tokens, keys, and passwords. They are not returned and must not be typed into the chat. |
-| Never touches | A visitor's raw email, phone, or name. Hashed values stay hashed. IP stays masked unless the customer asks for the full value. |
+| Never touches | A visitor's raw email, phone, or name. Hashed values stay hashed. The IP address in an event payload is a hash. |
 | Never touches | Deleting a Site or a Pixel. Those tools do not exist. |
 
 <!-- tools:start -->
@@ -28,7 +28,7 @@ The client opens the PixelFlow login and the customer clicks Allow. No token is 
 | --- | --- | --- |
 | `list_sites` | List the websites the signed-in user can access in PixelFlow: each site's site_id, domain, platform, currency, whether the user can edit it, and the workspace it belongs to with the user's role there. | Reads |
 | `list_supported_values` | List the names PixelFlow supports and other tools accept: the platforms a site can run on, the ad platforms events can be sent to, the integrations that report conversions, the supported events, and the traffic sources events are attributed to. | Reads |
-| `get_site_status` | Get the setup and health state of one site: its settings (domain, platform, currency, ecommerce flags), whether the PixelFlow script or plugin is installed, connected pixels and integrations, blocking rules, consent mode, the last event received of each type, which Get Started checklist items are done, and the plan, limits, and usage of its workspace. | Reads |
+| `get_site_status` | Get the setup and health state of one site: its settings (domain, platform, currency, ecommerce flags), whether the PixelFlow script or plugin is installed, connected pixels and integrations, blocking rules, consent mode, the last event received of each type, which Get Started checklist items are done, and the limits and usage of the site's workspace, and whether that workspace's subscription is active. | Reads |
 | `get_install_instructions` | Get step-by-step instructions the user follows on their website or in their ad platform's ads manager, for one task: installing PixelFlow, adding UTM parameters to ad links, removing an ad platform's own pixel code (such as the Facebook pixel) that was added before PixelFlow and would count events twice, or removing PixelFlow. | Reads |
 | `verify_tracking` | Check that tracking works on one site by loading one of its pages in a headless browser and reading the events received since checked_from. | Loads the customer's site |
 | `get_connect_link` | Create a one-time link to the PixelFlow dashboard page for a step that needs a browser sign-in or a secret. | Edits |
@@ -212,3 +212,21 @@ PixelFlow never asks you to paste a token, a key or a password: you sign in with
 `weekly_report`: Last 7 days against the 7 days before: overview numbers, attributed revenue, blocked events, and whether tracking is still healthy.
 
 The pasteable setup prompt is on https://pixelflow.so/features/mcp.
+
+## Repository layout
+
+Each plugin lives in its own folder, which holds only what that plugin needs:
+
+| Folder | Plugin |
+| --- | --- |
+| [plugins/claude](plugins/claude) | Claude |
+| [plugins/openai](plugins/openai) | ChatGPT and Codex |
+| [plugins/cursor](plugins/cursor) | Cursor, found through `.cursor-plugin/marketplace.json` at the root |
+
+The skills exist in four places, the root and the three plugin folders, because each directory checks one folder and may refuse symlinks or paths that leave it. Do not merge them into one folder. Edit `skills/`, `assets/logo.png` and `LICENSE` at the root only. The copies in the plugin folders are written by the sync command:
+
+```
+sh sync-plugins.sh
+```
+
+Commit the copies with the change. A GitHub check runs the same command on every push and pull request, and fails when a copy differs from the root.

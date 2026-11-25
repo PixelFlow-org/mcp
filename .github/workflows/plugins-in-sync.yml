@@ -1,0 +1,29 @@
+name: Plugins in sync
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  plugins-in-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Copy the shared files into the plugin folders
+        run: sh sync-plugins.sh
+
+      # git status, not git diff: a new skill that was never copied is an untracked file.
+      - name: Fail when a copy differs from the root
+        run: |
+          changes="$(git status --porcelain --untracked-files=all)"
+          if [ -n "$changes" ]; then
+            echo "$changes"
+            git diff
+            echo "::error::Edit skills, the logo and the license at the repo root only, then run sh sync-plugins.sh and commit the result."
+            exit 1
+          fi

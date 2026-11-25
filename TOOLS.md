@@ -10,7 +10,7 @@ Every tool that works on one site takes site_id, the integer from list_sites. Re
 
 List sites. Reads. readOnlyHint true, destructiveHint false, idempotentHint true, openWorldHint false
 
-List the websites the signed-in user can access in PixelFlow: each site's site_id, domain, platform, currency, whether the user can edit it, and the workspace it belongs to with the user's role there. Plan, limits, and usage are in get_site_status. Use it to find the site_id for a website the user names, or to ask which site they mean when there are several.
+List the websites the signed-in user can access in PixelFlow: each site's site_id, domain, platform, currency, whether the user can edit it, and the workspace it belongs to with the user's role there. Limits and usage are in get_site_status. Use it to find the site_id for a website the user names, or to ask which site they mean when there are several.
 
 ### Arguments
 
@@ -55,7 +55,7 @@ None.
 
 Get site status. Reads. readOnlyHint true, destructiveHint false, idempotentHint true, openWorldHint false
 
-Get the setup and health state of one site: its settings (domain, platform, currency, ecommerce flags), whether the PixelFlow script or plugin is installed, connected pixels and integrations, blocking rules, consent mode, the last event received of each type, which Get Started checklist items are done, and the plan, limits, and usage of its workspace. It also returns the next setup step, until setup and the Get Started checklist are complete. Use it before any setup or troubleshooting step, or when the user asks about their plan or limits.
+Get the setup and health state of one site: its settings (domain, platform, currency, ecommerce flags), whether the PixelFlow script or plugin is installed, connected pixels and integrations, blocking rules, consent mode, the last event received of each type, which Get Started checklist items are done, and the limits and usage of the site's workspace, and whether that workspace's subscription is active. It also returns the next setup step, until setup and the Get Started checklist are complete. Use it before any setup or troubleshooting step, or when the user asks about their limits.
 
 ### Arguments
 
@@ -102,19 +102,17 @@ Get the setup and health state of one site: its settings (domain, platform, curr
 | `last_events[].is_sent` | boolean | Whether it was delivered to the ad platforms. |
 | `events_window_days` | integer | Days back script_or_plugin.is_seen and last_events look. |
 | `consent_mode` | string, one of enabled, disabled | enabled: PixelFlow honors visitor consent before sending. |
-| `workspace` | object | Workspace that owns this site, with its plan, limits, and usage. |
+| `workspace` | object | Workspace that owns this site, with its limits and usage. |
 | `workspace.workspace_id` | integer | Workspace id. |
 | `workspace.workspace_name` | string | Workspace name. |
-| `workspace.plan` | string | Plan name, such as Standard. `trial` during a free trial without a plan, `none` once that trial has ended. |
-| `workspace.plan_status` | string, one of active, canceled, incomplete, incomplete_expired, past_due, paused, trialing, unpaid, expired, none | Billing state. expired: the free trial ended without a plan. none: no plan and no trial. |
-| `workspace.trial_days_left` | integer or null | Whole days until the trial ends. 0: ended. null: no trial. |
+| `workspace.is_subscription_active` | boolean | Whether the workspace's subscription is active. false: PixelFlow is not accepting events from the sites of this workspace. |
 | `workspace.limits` | object |  |
-| `workspace.limits.sites` | integer | Sites the workspace may have, including purchased extra sites. |
+| `workspace.limits.sites` | integer | Sites the workspace may have. |
 | `workspace.limits.events_per_month` | integer or null | Events per month the plan includes, such as 500000. null means unlimited. |
-| `workspace.limits.ad_platform_slots` | integer | Ad platform connections allowed, including purchased extras. |
+| `workspace.limits.ad_platform_slots` | integer | Ad platform connections allowed. |
 | `workspace.limits.analytics_lookback_days` | integer | How far back get_overview, get_attribution, and get_blocked_events can read. |
 | `workspace.limits.journeys_lookback_days` | integer | How far back get_journeys can read. |
-| `workspace.limits.member_seats` | integer | Team members allowed, not counting the owner. 0 on a free trial. |
+| `workspace.limits.member_seats` | integer | Team members allowed, not counting the owner. |
 | `workspace.usage` | object |  |
 | `workspace.usage.sites` | integer | Sites in the workspace, including ones this user cannot open. |
 | `workspace.usage.ad_platform_slots` | integer | Ad platform slots in use. |
@@ -247,14 +245,14 @@ Check that tracking works on one site by loading one of its pages in a headless 
 
 Get dashboard link. Edits. readOnlyHint false, destructiveHint false, idempotentHint false, openWorldHint false
 
-Create a one-time link to the PixelFlow dashboard page for a step that needs a browser sign-in or a secret. Returns the link and when it expires. The link holds only an opaque id and works only for this user when signed in, so no credential passes through the chat. It must be opened in a regular browser such as Chrome, Safari, or Firefox. Integration and Visual Tagger targets are refused until site setup has passed verify. Use it when connecting an ad platform pixel (such as Facebook or TikTok), connecting an integration (such as Stripe or Calendly), opening billing, or opening the Visual Tagger on a page of the site. A Visual Tagger link saves the trigger itself when the user confirms, so read list_triggers afterwards instead of calling create_trigger.
+Create a one-time link to the PixelFlow dashboard page for a step that needs a browser sign-in or a secret. Returns the link and when it expires. The link holds only an opaque id and works only for this user when signed in, so no credential passes through the chat. It must be opened in a regular browser such as Chrome, Safari, or Firefox. Integration and Visual Tagger targets are refused until site setup has passed verify. Use it when connecting an ad platform pixel (such as Facebook or TikTok), connecting an integration (such as Stripe or Calendly), or opening the Visual Tagger on a page of the site. A Visual Tagger link saves the trigger itself when the user confirms, so read list_triggers afterwards instead of calling create_trigger.
 
 ### Arguments
 
 | Argument | Type | Required | Description |
 | --- | --- | --- | --- |
 | `site_id` | integer | yes | Site to act on, as returned by list_sites. |
-| `target` | string, one of ad_platform, integration, billing, visual_tagger | yes | Dashboard page to open. ad_platform: connect or reconnect a pixel. integration: connect an integration. billing: change the plan. visual_tagger: pick an element on page_path to track. |
+| `target` | string, one of ad_platform, integration, visual_tagger | yes | Dashboard page to open. ad_platform: connect or reconnect a pixel. integration: connect an integration. visual_tagger: pick an element on page_path to track. |
 | `ad_platform` | string | no | Ad platform to connect, such as facebook or tiktok. Names are in list_supported_values's `ad_platforms`. |
 | `integration` | string | no | Integration to connect, such as stripe or calendly. Names are in list_supported_values's `integrations`. |
 | `page_path` | string | no | Path on this site, such as /thank-you. Any query string is dropped. |
@@ -264,7 +262,7 @@ Create a one-time link to the PixelFlow dashboard page for a step that needs a b
 | Field | Type | Description |
 | --- | --- | --- |
 | `url` | string (uri) | One-time dashboard link. |
-| `target` | string, one of ad_platform, integration, billing, visual_tagger | Dashboard page the link opens. |
+| `target` | string, one of ad_platform, integration, visual_tagger | Dashboard page the link opens. |
 | `ad_platform` | string, may be omitted | ad_platform only: ad platform the link connects, such as facebook. |
 | `integration` | string, may be omitted | integration only: integration the link connects, such as stripe. |
 | `site_id` | integer | Site id. |
@@ -348,7 +346,7 @@ Disconnect an integration such as Stripe or Calendly from a site and return whic
 
 Create site. Edits. readOnlyHint false, destructiveHint false, idempotentHint false, openWorldHint false
 
-Add a new website to a PixelFlow workspace and return the saved site with its site_id. If the workspace is at its site limit or its plan is canceled, the site is not created and the error says why. The result includes next_action, the same as get_site_status. Use it when the user wants to track a website that list_sites does not show.
+Add a new website to a PixelFlow workspace and return the saved site with its site_id. If the workspace is at its site limit or its subscription is not active, the site is not created and the error says why. The result includes next_action, the same as get_site_status. Use it when the user wants to track a website that list_sites does not show.
 
 ### Arguments
 
@@ -511,14 +509,14 @@ Get tracking totals for one site over a date range: the count of each event, suc
 | `revenue_by_currency[].events` | integer | Valued events summed. |
 | `delivered` | object | Events delivered to the ad platforms. |
 | `delivered.count` | integer | Events delivered. |
-| `failed` | object | Events that failed with an error. Events still sending are in neither count. |
+| `failed` | object | Events that failed. Pending and skipped events are in neither count. |
 | `failed.count` | integer | Events failed. |
-| `pixels` | array of object | Per pixel: `pixel_id` (integer), `name` (string), `ad_platform` (string or null), `sent` (integer), `failed` (integer, not delivered). |
+| `pixels` | array of object | Per pixel: `pixel_id` (integer), `name` (string), `ad_platform` (string or null), `sent` (integer, delivered), `failed` (integer). Pending and skipped sends are in neither count. |
 | `pixels[].pixel_id` | integer | Pixel id. |
 | `pixels[].name` | string | Pixel name. |
 | `pixels[].ad_platform` | string or null | Ad platform name. |
-| `pixels[].sent` | integer | Events sent. |
-| `pixels[].failed` | integer | Events not delivered. |
+| `pixels[].sent` | integer | Sends delivered. |
+| `pixels[].failed` | integer | Sends failed. |
 | `blocked` | object | Events not sent because of consent or bots: `total`, `bots_blocked`, `consent_events_blocked` (integers), `reasons` (object, reason to count: denied, no_decision, gpc, bot), and `event_counts` (object, event to count, such as { "Purchase": 9 }). For the individual blocked events, see get_blocked_events. |
 | `blocked.total` | integer | All blocked events. |
 | `blocked.bots_blocked` | integer | Blocked as bots. |
@@ -653,7 +651,7 @@ Get visitor journeys on one site, one row per visitor with an event in the date 
 
 List events. Reads. readOnlyHint true, destructiveHint false, idempotentHint true, openWorldHint false
 
-List the tracked events on one site as rows, up to 100 per call. Each row has the time, event, page URL, traffic source, value, visitor and session ids, UTM tags with first and last touch, consent, and send status per pixel with any ad platform error. For an event's full payload, pass its id to get_event_payloads. Use it to answer questions about tracked events, such as what one visitor did, which conversions failed to send, or which pages purchases came from.
+List the tracked events on one site as rows, up to 100 per call. Each row has the time, event, page URL, traffic source, value, visitor and session ids, UTM tags with first and last touch, consent, the event status, and the status per pixel with its reason. For an event's full payload, pass its id to get_event_payloads. Use it to answer questions about tracked events, such as what one visitor did, which conversions failed to send, or which pages purchases came from.
 
 ### Arguments
 
@@ -668,8 +666,9 @@ List the tracked events on one site as rows, up to 100 per call. Each row has th
 | `utm_campaign` | array of string, up to 50 items | no | Match the visitor's UTM campaign seen in the lookback_days before the event (returned in the result). (not set) matches a blank value. |
 | `utm_term` | array of string, up to 50 items | no | Same, for UTM term (usually the ad set). |
 | `utm_content` | array of string, up to 50 items | no | Same, for UTM content (usually the ad). |
-| `pixel_ids` | array of integer, up to 50 items | no | Only events sent to these pixels, ids from get_site_status. Rows still list every pixel. |
-| `is_sent_successfully` | boolean | no | Whether to return only delivered events (true) or only failed and still-sending events (false); rows with an error are real failures. Default all. |
+| `pixel_ids` | array of integer, up to 50 items | no | Only events sent to these pixels, ids from get_site_status. A pixel that skipped the event does not count. Rows still list every pixel. |
+| `status` | string, one of pending, delivered, failed, skipped | no | Only events with this status: delivered, pending, failed, or skipped. Default all. |
+| `is_sent_successfully` | boolean | no | Older form of status: true returns only delivered events, false returns only failed events. status wins when both are passed. Default all. |
 | `visitor_id` | string | no | One visitor's events, visitor_id from an earlier row. |
 | `sort` | string, one of newest, oldest | no | Default newest. |
 | `limit` | integer, 1 to 100 | no | Page size. Default 25. |
@@ -696,8 +695,9 @@ List the tracked events on one site as rows, up to 100 per call. Each row has th
 | `events[].currency` | string or null | Event currency. |
 | `events[].event_id` | string or null | Deduplication id shared with the browser pixel. |
 | `events[].visitor_id` | string or null | Visitor id. |
-| `events[].session_id` | string or null | Session id. |
-| `events[].is_sent_successfully` | boolean | Whether the event was delivered to the ad platforms. |
+| `events[].session_id` | string or null | One visit of this visitor in one browser tab. Groups the events of that visit. |
+| `events[].status` | string, one of pending, delivered, failed, skipped | Event status, rolled up from the pixels' states. failed: any pixel failed. pending: none failed and any is pending. delivered: every pixel the event was sent to confirmed it. skipped: every pixel skipped it. |
+| `events[].is_sent_successfully` | boolean | Whether the event was delivered to the ad platforms. true exactly when status is delivered. |
 | `events[].error` | string or null | Ad platform error. Set only on a real failure. |
 | `events[].utm_source` | string or null | UTM tag of the visitor in the lookback_days before the event. |
 | `events[].utm_medium` | string or null | UTM tag of the visitor in the lookback_days before the event. |
@@ -724,17 +724,18 @@ List the tracked events on one site as rows, up to 100 per call. Each row has th
 | `events[].consent.source` | string or null | Consent tool. |
 | `events[].consent.decision_at` | string (date-time) or null | When the visitor decided. |
 | `events[].consent.regime` | string or null, one of opt_in, opt_out | Consent rule for the visitor's region. opt_in: consent is needed before tracking. opt_out: tracking is allowed until the visitor refuses. null when not recorded. |
-| `events[].pixels` | array of object | Per pixel: `pixel_id`, `name`, `ad_platform`, `state` (enum: sent, failed, pending). |
+| `events[].pixels` | array of object | Per pixel: `pixel_id`, `name`, `ad_platform`, `state` (enum: delivered, pending, failed, skipped), `reason` (string or null). |
 | `events[].pixels[].pixel_id` | integer | Pixel id. |
 | `events[].pixels[].name` | string | Pixel name. |
 | `events[].pixels[].ad_platform` | string or null | Ad platform name. |
-| `events[].pixels[].state` | string, one of sent, failed, pending | Send status, as in list_events. |
+| `events[].pixels[].state` | string, one of pending, delivered, failed, skipped | Send status. delivered: the ad platform confirmed it. pending: waiting to be sent, or sent and not confirmed yet. failed: the ad platform rejected it or it could not be sent. skipped: not sent on purpose, because the ad platform cannot use it. |
+| `events[].pixels[].reason` | string or null | Why the send is failed, skipped or pending. null when delivered. |
 
 ## `get_event_payloads`
 
 Get event details. Reads. readOnlyHint true, destructiveHint false, idempotentHint true, openWorldHint false
 
-Get the payload (request body) PixelFlow sent to each ad platform for up to 25 events by id. Each event lists every pixel it was sent to, with that payload and any error. IP addresses in the payload are partly hidden. Pass include_ip true to see them in full. Name, email and phone are hashed, as the ad platforms receive them. Use it to see exactly what was sent for an event from list_events, or why an ad platform rejected it.
+Get the payload (request body) PixelFlow sent to each ad platform for up to 25 events by id. Each event lists every pixel it was sent to, with that payload and any error. The IP address in a payload is a hash, not the address itself. Name, email and phone are hashed, as the ad platforms receive them. Use it to see exactly what was sent for an event from list_events, or why an ad platform rejected it.
 
 ### Arguments
 
@@ -742,7 +743,6 @@ Get the payload (request body) PixelFlow sent to each ad platform for up to 25 e
 | --- | --- | --- | --- |
 | `site_id` | integer | yes | Site to act on, as returned by list_sites. |
 | `ids` | array of integer, at least 1 items, up to 25 items | yes | Row `id` values from list_events. |
-| `include_ip` | boolean | no | Whether to return the full IP address inside the payload. Default false, which keeps only the first three IPv4 octets or the IPv6 /48 and replaces the rest with x. Use only when the user asks for the full address. |
 | `timezone` | string | no | IANA time zone such as Europe/Berlin. Default UTC. Returned times and day buckets use it. |
 
 ### Result
@@ -754,13 +754,14 @@ Get the payload (request body) PixelFlow sent to each ad platform for up to 25 e
 | `events[].id` | integer | Row id from list_events. |
 | `events[].time` | string (date-time) | Arrival time. |
 | `events[].event` | string | The event recorded, such as Purchase. |
-| `events[].pixels` | array of object | One per pixel the event was sent to, including pixels deleted since. Empty when the event was not sent to any pixel. |
+| `events[].pixels` | array of object | One per pixel the event was sent to or skipped for, including pixels deleted since. Empty when the event has no pixel. |
 | `events[].pixels[].pixel_id` | integer | The pixel, as in list_events. |
 | `events[].pixels[].name` | string | The pixel, as in list_events. |
 | `events[].pixels[].ad_platform` | string or null | The pixel, as in list_events. |
-| `events[].pixels[].state` | string, one of sent, failed, pending | Send status, as in list_events. |
+| `events[].pixels[].state` | string, one of pending, delivered, failed, skipped | Send status. delivered: the ad platform confirmed it. pending: waiting to be sent, or sent and not confirmed yet. failed: the ad platform rejected it or it could not be sent. skipped: not sent on purpose, because the ad platform cannot use it. |
+| `events[].pixels[].reason` | string or null | Why the send is failed, skipped or pending. null when delivered. |
 | `events[].pixels[].error` | string or null | Error stored for this send. Set only on a real failure. |
-| `events[].pixels[].payload` | object or null | Payload (request body) sent to the ad platform, as stored. IP masked unless include_ip. null when no payload is stored, such as a send that failed before dispatch or an event older than payload retention. |
+| `events[].pixels[].payload` | object or null | Payload (request body) sent to the ad platform, as stored. The IP address is a hash. null when no payload is stored, such as a skipped send, a send that failed before dispatch or an event older than payload retention. |
 
 ## `get_blocked_events`
 

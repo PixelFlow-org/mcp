@@ -1,0 +1,10 @@
+{
+  "name": "pixelflow",
+  "owner": { "name": "PixelFlow" },
+  "plugins": [
+    {
+      "name": "pixelflow",
+      "source": "plugins/cursor"
+    }
+  ]
+}
