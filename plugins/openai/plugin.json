@@ -74,7 +74,7 @@
           "negative": [
             {
               "description": "Refuse to delete a site",
-              "prompt": "Delete my site deom PixelFlow.",
+              "prompt": "Delete my site from PixelFlow.",
               "expected_behavior": "Refuse to delete the site and say there is no delete_site operation. The site stays."
             },
             {
