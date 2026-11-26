@@ -729,7 +729,7 @@ List the tracked events on one site as rows, up to 100 per call. Each row has th
 | `events[].pixels[].name` | string | Pixel name. |
 | `events[].pixels[].ad_platform` | string or null | Ad platform name. |
 | `events[].pixels[].state` | string, one of pending, delivered, failed, skipped | Send status. delivered: the ad platform confirmed it. pending: waiting to be sent, or sent and not confirmed yet. failed: the ad platform rejected it or it could not be sent. skipped: not sent on purpose, because the ad platform cannot use it. |
-| `events[].pixels[].reason` | string or null | Why the send is failed, skipped or pending. null when delivered. |
+| `events[].pixels[].reason` | string or null | Why the send is failed, skipped or pending. When delivered, a note from the ad platform or null. |
 
 ## `get_event_payloads`
 
@@ -759,7 +759,7 @@ Get the payload (request body) PixelFlow sent to each ad platform for up to 25 e
 | `events[].pixels[].name` | string | The pixel, as in list_events. |
 | `events[].pixels[].ad_platform` | string or null | The pixel, as in list_events. |
 | `events[].pixels[].state` | string, one of pending, delivered, failed, skipped | Send status. delivered: the ad platform confirmed it. pending: waiting to be sent, or sent and not confirmed yet. failed: the ad platform rejected it or it could not be sent. skipped: not sent on purpose, because the ad platform cannot use it. |
-| `events[].pixels[].reason` | string or null | Why the send is failed, skipped or pending. null when delivered. |
+| `events[].pixels[].reason` | string or null | Why the send is failed, skipped or pending. When delivered, a note from the ad platform or null. |
 | `events[].pixels[].error` | string or null | Error stored for this send. Set only on a real failure. |
 | `events[].pixels[].payload` | object or null | Payload (request body) sent to the ad platform, as stored. The IP address is a hash. null when no payload is stored, such as a skipped send, a send that failed before dispatch or an event older than payload retention. |
 
